@@ -1,0 +1,9 @@
+global using CRM.Chat.Application.Common.Abstractions.Specifications;
+global using CRM.Chat.Domain.Entities.Chats.Enums; 
+global using CRM.Chat.Application.Common.Abstractions.Mediators;
+global using CRM.Chat.Application.Common.Abstractions.Repositories;
+global using CRM.Chat.Application.Common.Abstractions.Users;
+global using CRM.Chat.Application.Common.Persistence;
+global using CRM.Chat.Application.Common.Services;
+global using CRM.Chat.Domain.Common.Models;
+global using FluentValidation;

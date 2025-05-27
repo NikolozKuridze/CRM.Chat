@@ -1,0 +1,16 @@
+global using CRM.Chat.Domain.Common.Events;
+global using System.Collections.Concurrent;
+global using System.Linq.Expressions;
+global using System.Reflection;
+global using System.Security.Claims;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
+global using CRM.Chat.Domain.Common.Entities;
+global using CRM.Chat.Domain.Common.Events;
+global using CRM.Chat.Domain.Common.Models;
+global using CRM.Chat.Domain.Entities.Chats;
+global using CRM.Chat.Domain.Entities.Messages;
+global using CRM.Chat.Domain.Entities.Operators;
+global using CRM.Chat.Domain.Entities.OutboxMessages;
+global using CRM.Chat.Domain.Entities.Participants;
+//global using FluentValidation;
