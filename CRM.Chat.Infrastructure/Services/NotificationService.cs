@@ -164,4 +164,115 @@ public class NotificationService : INotificationService
             return Result.Failure<Unit>("Failed to send typing notification", "InternalServerError");
         }
     }
+
+    public async Task<Result<Unit>> NotifyMessageEditedAsync(Guid chatId, Guid messageId, string newContent,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var editNotification = new
+            {
+                ChatId = chatId,
+                MessageId = messageId,
+                NewContent = newContent,
+                EditedAt = DateTimeOffset.UtcNow
+            };
+
+            await _chatHub.SendMessageToChatAsync(chatId, editNotification);
+
+            _logger.LogInformation("Notified message edited: Message {MessageId} in Chat {ChatId}",
+                messageId, chatId);
+
+            return Result.Success(Unit.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying message edited for message {MessageId} in chat {ChatId}",
+                messageId, chatId);
+            return Result.Failure<Unit>("Failed to send edit notification", "InternalServerError");
+        }
+    }
+
+    public async Task<Result<Unit>> NotifyMessageDeletedAsync(Guid chatId, Guid messageId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var deleteNotification = new
+            {
+                ChatId = chatId,
+                MessageId = messageId,
+                DeletedAt = DateTimeOffset.UtcNow
+            };
+
+            await _chatHub.SendMessageToChatAsync(chatId, deleteNotification);
+
+            _logger.LogInformation("Notified message deleted: Message {MessageId} in Chat {ChatId}",
+                messageId, chatId);
+
+            return Result.Success(Unit.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying message deleted for message {MessageId} in chat {ChatId}",
+                messageId, chatId);
+            return Result.Failure<Unit>("Failed to send delete notification", "InternalServerError");
+        }
+    }
+
+    public async Task<Result<Unit>> NotifyParticipantAddedAsync(Guid chatId, Guid participantId, Guid addedBy,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var participantNotification = new
+            {
+                ChatId = chatId,
+                ParticipantId = participantId,
+                AddedBy = addedBy,
+                AddedAt = DateTimeOffset.UtcNow
+            };
+
+            await _chatHub.SendMessageToChatAsync(chatId, participantNotification);
+
+            _logger.LogInformation(
+                "Notified participant added: User {ParticipantId} added to Chat {ChatId} by {AddedBy}",
+                participantId, chatId, addedBy);
+
+            return Result.Success(Unit.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying participant added for chat {ChatId}", chatId);
+            return Result.Failure<Unit>("Failed to send participant added notification", "InternalServerError");
+        }
+    }
+
+    public async Task<Result<Unit>> NotifyParticipantRemovedAsync(Guid chatId, Guid participantId, Guid removedBy,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var participantNotification = new
+            {
+                ChatId = chatId,
+                ParticipantId = participantId,
+                RemovedBy = removedBy,
+                RemovedAt = DateTimeOffset.UtcNow
+            };
+
+            await _chatHub.SendMessageToChatAsync(chatId, participantNotification);
+
+            _logger.LogInformation(
+                "Notified participant removed: User {ParticipantId} removed from Chat {ChatId} by {RemovedBy}",
+                participantId, chatId, removedBy);
+
+            return Result.Success(Unit.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying participant removed for chat {ChatId}", chatId);
+            return Result.Failure<Unit>("Failed to send participant removed notification", "InternalServerError");
+        }
+    }
 }

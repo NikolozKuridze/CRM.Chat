@@ -23,4 +23,16 @@ public interface INotificationService
 
     Task<Result<Unit>> NotifyTypingAsync(Guid chatId, Guid userId, bool isTyping,
         CancellationToken cancellationToken = default);
+ 
+    Task<Result<Unit>> NotifyMessageEditedAsync(Guid chatId, Guid messageId, string newContent,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Unit>> NotifyMessageDeletedAsync(Guid chatId, Guid messageId,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Unit>> NotifyParticipantAddedAsync(Guid chatId, Guid participantId, Guid addedBy,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Unit>> NotifyParticipantRemovedAsync(Guid chatId, Guid participantId, Guid removedBy,
+        CancellationToken cancellationToken = default);
 }
