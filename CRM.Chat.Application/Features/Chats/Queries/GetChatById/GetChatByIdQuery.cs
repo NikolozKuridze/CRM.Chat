@@ -2,8 +2,7 @@ using CRM.Chat.Application.Common.Specifications.Chats;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Chat.Application.Features.Chats.Queries.GetChatById;
-
-public sealed record GetChatByIdQuery(Guid ChatId) : IRequest<ChatDetailsDto>;
+public sealed record GetChatByIdQuery(Guid ChatId) : IQuery<ChatDetailsDto>;
 
 public sealed record ChatDetailsDto(
     Guid Id,
@@ -52,7 +51,7 @@ public sealed class GetChatByIdQueryValidator : AbstractValidator<GetChatByIdQue
 public sealed class GetChatByIdQueryHandler(
     IRepository<Domain.Entities.Chats.Chat> chatRepository,
     IUserContext userContext,
-    ILogger<GetChatByIdQueryHandler> logger) : IRequestHandler<GetChatByIdQuery, ChatDetailsDto>
+    ILogger<GetChatByIdQueryHandler> logger) : IQueryHandler<GetChatByIdQuery, ChatDetailsDto>
 {
     public async ValueTask<Result<ChatDetailsDto>> Handle(GetChatByIdQuery request, CancellationToken cancellationToken)
     {

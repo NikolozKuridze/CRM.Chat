@@ -13,11 +13,30 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException(
+                "DefaultConnection connection string არ არის კონფიგურირებული appsettings.json-ში");
+        }
+
+        Console.WriteLine($"Database connection: {connectionString.Replace("Password=Postgres2025", "Password=***")}");
+
+        services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+        {
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                npgsqlOptions.CommandTimeout(60); // 60 seconds timeout
+            });
+
+            // Development logging
+            options.EnableSensitiveDataLogging(false);
+            options.EnableDetailedErrors(true);
+        });
+
+        // Repository და UnitOfWork რეგისტრაცია
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using CRM.Chat.Domain.Entities.Operators;
 using CRM.Chat.Persistence.Configurations.Base;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace CRM.Chat.Persistence.Configurations;
@@ -41,22 +42,30 @@ public class ChatOperatorConfiguration : AuditableEntityTypeConfiguration<ChatOp
         builder.Property(o => o.IsOnline)
             .HasDefaultValue(false);
 
-        // Configure Skills as JSON array
+        // Configure Skills as JSON array with Value Comparer
         builder.Property(o => o.Skills)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, new JsonSerializerOptions()),
                 v => JsonSerializer.Deserialize<List<string>>(v, new JsonSerializerOptions()) ?? new List<string>())
             .HasColumnType("jsonb")
-            .HasDefaultValueSql("'[]'::jsonb");
+            .HasDefaultValueSql("'[]'::jsonb")
+            .Metadata.SetValueComparer(new ValueComparer<List<string>>(
+                (c1, c2) => c1!.SequenceEqual(c2!),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => new List<string>(c)));
 
-        // Configure Metadata as JSON column
+        // Configure Metadata as JSON column with Value Comparer
         builder.Property(o => o.Metadata)
             .HasConversion(
                 v => JsonSerializer.Serialize(v, new JsonSerializerOptions()),
                 v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, new JsonSerializerOptions()) ??
                      new Dictionary<string, object>())
             .HasColumnType("jsonb")
-            .HasDefaultValueSql("'{}'::jsonb");
+            .HasDefaultValueSql("'{}'::jsonb")
+            .Metadata.SetValueComparer(new ValueComparer<Dictionary<string, object>>(
+                (c1, c2) => c1!.SequenceEqual(c2!),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => new Dictionary<string, object>(c)));
 
         // Indexes
         builder.HasIndex(o => o.UserId)

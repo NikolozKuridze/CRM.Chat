@@ -8,14 +8,14 @@ using CRM.Chat.Domain.Entities.Participants;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Chat.Persistence.Databases;
-
 public class ApplicationDbContext : DbContext
 {
-    private readonly IUserContext _userContext;
+    private readonly IUserContext? _userContext;
 
+    // Primary constructor runtime-ისთვის
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        IUserContext userContext) : base(options)
+        IUserContext? userContext = null) : base(options)
     {
         _userContext = userContext;
     }
@@ -32,17 +32,22 @@ public class ApplicationDbContext : DbContext
         return await base.SaveChangesAsync(cancellationToken);
     }
 
+    public override int SaveChanges()
+    {
+        ApplyAuditInformation();
+        return base.SaveChanges();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
     private void ApplyAuditInformation()
     {
-        var userId = _userContext.Id.ToString();
-        var userIp = _userContext.IpAddress;
+        var userId = _userContext?.Id.ToString() ?? "System";
+        var userIp = _userContext?.IpAddress;
 
         foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
         {

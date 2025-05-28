@@ -4,7 +4,6 @@ using CRM.Chat.Application.Common.Behaviors;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CRM.Chat.Application.DI;
-
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
@@ -19,19 +18,36 @@ public static class DependencyInjection
     }
 
     private static void AddMediatR(this IServiceCollection services, Assembly assembly)
-    {
-        // Register all request handlers
+    { 
         var handlerTypes = assembly.GetTypes()
-            .Where(t => t.GetInterfaces()
-                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>)))
+            .Where(t => !t.IsInterface && !t.IsAbstract && t.GetInterfaces()
+                .Any(i => i.IsGenericType && 
+                         (i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>) ||
+                          i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>) ||
+                          i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>))))
             .ToList();
 
         foreach (var handlerType in handlerTypes)
-        {
-            var interfaceType = handlerType.GetInterfaces()
-                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
+        { 
+            var interfaces = handlerType.GetInterfaces()
+                .Where(i => i.IsGenericType && 
+                           (i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>) ||
+                            i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>) ||
+                            i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)))
+                .ToList();
 
-            services.AddScoped(interfaceType, handlerType);
+            foreach (var interfaceType in interfaces)
+            {
+                services.AddScoped(interfaceType, handlerType);
+                 
+                if (interfaceType.GetGenericTypeDefinition() == typeof(IQueryHandler<,>) ||
+                    interfaceType.GetGenericTypeDefinition() == typeof(ICommandHandler<,>))
+                {
+                    var requestHandlerInterface = typeof(IRequestHandler<,>)
+                        .MakeGenericType(interfaceType.GetGenericArguments());
+                    services.AddScoped(requestHandlerInterface, handlerType);
+                }
+            }
         }
 
         services.AddScoped<IMediator, Mediator>();
